@@ -1,6 +1,6 @@
-from render import Math3d
+from render import Math3d,textures
 import pygame
-import math
+import numpy as np
 
 class Light3D:
     def __init__(self,pos=(0,0,0)):
@@ -88,19 +88,18 @@ class Group:
         obj.sort(key=lambda x: x[0],reverse=True)
         return obj
     
-    def run(self, display):
+    def run(self):
         obj = self.sort_objects()
         for i in range(len(obj)):
-            obj[i][1].drawTriangle(display, self.SW, self.SH, self.FOV,self.light,self.camera)
+            obj[i][1].drawTriangle(self.SW, self.SH, self.FOV,self.camera)
 
 class Object3D:
-    def __init__(self, vert, tirangles, pos,color,texture:str):
-        self.pos = pos
-        self.max_darkness = 0
-        self.max_brightness = 255
+    def __init__(self, vert, tirangles, pos,color,texture:str,texture_cords:list,display: pygame.Surface):
         self.color = color
+        self.pos = pos
+        self.texture_cords = texture_cords
         self.tirangles = tirangles
-        self.texture = texture
+        self.texture = textures.Texture(display,pygame.image.load(texture).convert_alpha())
         self.vert = Math3d.Transform(vert).translate(pos)
     
     def sortTriangles(self, vert):
@@ -109,17 +108,18 @@ class Object3D:
             tri = vert[i]
 
             try:
-                z1 = tri[0][2]
-                z2 = tri[1][2]
-                z3 = tri[2][2]
+                z1 = tri[0][0][2]
+                z2 = tri[0][1][2]
+                z3 = tri[0][2][2]
                 avg_z = (z1 + z2 + z3) / 3
             except:
                 continue
 
-            disMap.append([avg_z, tri])
+            disMap.append([avg_z, tri[0],tri[1]])
 
         disMap.sort(key=lambda x: x[0], reverse=True)
-        return [tri for _, tri in disMap]
+        return [(a, b) for _, a, b in disMap]
+
     
     def move(self, newPos):
         self.pos = [self.pos[0]+newPos[0],self.pos[1]+newPos[1],self.pos[2]+newPos[2]]
@@ -140,14 +140,18 @@ class Object3D:
             v1 = self.vert[self.tirangles[y][1][0]]
             v2 = self.vert[self.tirangles[y][2][0]]
 
+            vt0 = self.texture_cords[self.tirangles[y][0][1]]
+            vt1 = self.texture_cords[self.tirangles[y][1][1]]
+            vt2 = self.texture_cords[self.tirangles[y][2][1]]
+
             clipedPos = cam.clip_triangle(
                 v0,v1,v2
             )
 
-            NewVert.append(clipedPos)
+            NewVert.append((clipedPos,(vt0,vt1,vt2)))
         return NewVert
 
-    def drawTriangle(self, display,SW,SH,FOV,light3d,cam,hasfog=False,fog_radus=None):
+    def drawTriangle(self,SW,SH,FOV,cam):
         NewVert = self.clipTirangles(cam)
         NewVert = self.sortTriangles(NewVert)
 
@@ -156,41 +160,12 @@ class Object3D:
                 FOV, cam.NearPlane, SH, SW
             )
             for x in range(len(transfromVert)):
-                Pos = transfromVert[x]
+                face = transfromVert[x]
+                Pos = face[0]
 
-                v0, v1, v2 = NewVert[x]
-
-                edge1 = (v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2])
-                edge2 = (v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2])
-
-                nx = edge1[1]*edge2[2] - edge1[2]*edge2[1]
-                ny = edge1[2]*edge2[0] - edge1[0]*edge2[2]
-                nz = edge1[0]*edge2[1] - edge1[1]*edge2[0]
-
-                length = math.sqrt(nx*nx + ny*ny + nz*nz)
-
-                if length == 0: continue
-
-                normal = (nx / length, ny / length, nz / length)
-
-                light_dir = light3d.get_light_dir((v0,v1,v2))
-                ld_len = math.sqrt(sum(c*c for c in light_dir))
-                light_dir = tuple(c / ld_len for c in light_dir)
-
-                brightness = max(0.2, normal[0]*light_dir[0] + normal[1]*light_dir[1] + normal[2]*light_dir[2])
-
-                shaded_color = tuple(
-                    max(self.max_darkness, min(self.max_brightness, int(self.color[i] * brightness)))
-                    for i in range(3)
-                    )
-                
-                if hasfog:
-                    shaded_color = light3d.add_fog(light3d.pos,(v0,v1,v2),fog_radus,shaded_color)
-
-                pygame.draw.polygon(
-                    display,
-                    shaded_color,
-                    [cam.center_object((Pos[0][0], Pos[0][1])),
+                self.texture.triangle_texture(
+                    (cam.center_object((Pos[0][0], Pos[0][1])),
                     cam.center_object((Pos[1][0], Pos[1][1])),
-                    cam.center_object((Pos[2][0], Pos[2][1]))]
+                    cam.center_object((Pos[2][0], Pos[2][1]))),
+                    face[1]
                 )

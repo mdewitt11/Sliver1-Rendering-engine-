@@ -69,8 +69,9 @@ class Transform:
     def transform2d3(self, focal, Nearplane, SH1, SW1):
         AR = SW1 / SH1
         new_vert = []
-        for i in prange(len(self.vert)):
-            cord = self.vert[i]
+        for i in range(len(self.vert)):
+            face = self.vert[i]
+            cord = face[0]
 
             if cord is None or cord[0] is None or cord[1] is None:
                 continue
@@ -96,9 +97,12 @@ class Transform:
 
             new_vert.append(
                 [
-                    [focal * x1 / z1 * AR, focal * y1 / z1],
-                    [focal * x2 / z2 * AR, focal * y2 / z2],
-                    [focal * x3 / z3 * AR, focal * y3 / z3]
+                    [
+                        [focal * x1 / z1 * AR, focal * y1 / z1],
+                        [focal * x2 / z2 * AR, focal * y2 / z2],
+                        [focal * x3 / z3 * AR, focal * y3 / z3]
+                    ],
+                    face[1]
                 ]
             )
         return new_vert
@@ -186,3 +190,10 @@ class Camera:
     
 def distance(a, b):
     return sum((a[i] - b[i])**2 for i in range(3)) ** 0.5
+
+
+class Math3d:
+    @staticmethod
+    def Vec2(v1:float,v2:float):
+        a = math.sqrt(v1*2,v2*2) # type: ignore
+        return 

@@ -1,6 +1,6 @@
 from render import Math3d,textures
 import pygame
-import math
+import numpy as np
 
 class Light3D:
     def __init__(self,pos=(0,0,0)):
@@ -88,18 +88,18 @@ class Group:
         obj.sort(key=lambda x: x[0],reverse=True)
         return obj
     
-    def run(self, display):
+    def run(self):
         obj = self.sort_objects()
         for i in range(len(obj)):
-            obj[i][1].drawTriangle(display, self.SW, self.SH, self.FOV,self.camera)
+            obj[i][1].drawTriangle(self.SW, self.SH, self.FOV,self.camera)
 
 class Object3D:
-    def __init__(self, vert, tirangles, pos,color,texture:str,texture_cords:list):
+    def __init__(self, vert, tirangles, pos,color,texture:str,texture_cords:list,display: pygame.Surface):
         self.color = color
         self.pos = pos
         self.texture_cords = texture_cords
         self.tirangles = tirangles
-        self.texture = textures.Texture(texture)
+        self.texture = textures.Texture(display,pygame.image.load(texture).convert_alpha())
         self.vert = Math3d.Transform(vert).translate(pos)
     
     def sortTriangles(self, vert):
@@ -119,6 +119,7 @@ class Object3D:
 
         disMap.sort(key=lambda x: x[0], reverse=True)
         return [(a, b) for _, a, b in disMap]
+
     
     def move(self, newPos):
         self.pos = [self.pos[0]+newPos[0],self.pos[1]+newPos[1],self.pos[2]+newPos[2]]
@@ -150,7 +151,7 @@ class Object3D:
             NewVert.append((clipedPos,(vt0,vt1,vt2)))
         return NewVert
 
-    def drawTriangle(self, display,SW,SH,FOV,cam):
+    def drawTriangle(self,SW,SH,FOV,cam):
         NewVert = self.clipTirangles(cam)
         NewVert = self.sortTriangles(NewVert)
 
@@ -166,6 +167,5 @@ class Object3D:
                     (cam.center_object((Pos[0][0], Pos[0][1])),
                     cam.center_object((Pos[1][0], Pos[1][1])),
                     cam.center_object((Pos[2][0], Pos[2][1]))),
-                    face[1],
-                    display
+                    face[1]
                 )

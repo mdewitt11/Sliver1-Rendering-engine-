@@ -69,7 +69,7 @@ class Transform:
     def transform2d3(self, focal, Nearplane, SH1, SW1):
         AR = SW1 / SH1
         new_vert = []
-        for i in prange(len(self.vert)):
+        for i in range(len(self.vert)):
             face = self.vert[i]
             cord = face[0]
 

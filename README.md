@@ -35,7 +35,7 @@ It includes basic rasterization, texture mapping, triangle rendering, and affine
 ## Requirements
 
 - Pygame
-- numba
+- Numba
 
 ---
 

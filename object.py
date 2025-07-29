@@ -1,4 +1,4 @@
-from render import Math3d,textures,loadFile
+from render import Core3d,textures,loadFile
 import pygame
 
 class Light3D:
@@ -34,7 +34,7 @@ class Light3D:
     def add_fog(self, light_cords, surface_cords, light_radius, base_color):
         center = self.triangle_center(surface_cords[0], surface_cords[1], surface_cords[2])
 
-        distance_to_light = Math3d.distance(center, light_cords)
+        distance_to_light = Core3d.distance(center, light_cords)
 
         brightness = max(0, 1 - (distance_to_light / light_radius))
         brightness = brightness ** 2
@@ -49,7 +49,7 @@ class Group:
     def __init__(self, objects=[],SW=900,SH=1000,FOV=0.5):
         self.objects = objects
         self.light = Light3D()
-        self.camera = Math3d.Camera(SW,SH,FOV)
+        self.secne = Core3d.Secne(SW,SH,FOV)
         self.zero = (0,0,0)
         self.SW = SW
         self.SH = SH
@@ -77,20 +77,20 @@ class Group:
             self.objects[i].rotate(axis,a)
     
     def update_screen(self,SH,SW):
-        self.camera.update_screen(SH,SW)
+        self.secne.update_screen(SH,SW)
 
     def sort_objects(self):
         obj = []
         for i in range(len(self.objects)):
             pos = self.objects[i].pos
-            obj.append([Math3d.distance(pos,self.zero),self.objects[i]])
+            obj.append([Core3d.distance(pos,self.zero),self.objects[i]])
         obj.sort(key=lambda x: x[0],reverse=True)
         return obj
     
     def run(self):
         obj = self.sort_objects()
         for i in range(len(obj)):
-            obj[i][1].drawTriangle(self.SW, self.SH, self.FOV,self.camera)
+            obj[i][1].drawModel(self.SW, self.SH, self.FOV,self.secne)
 
 class Object3D:
     def __init__(self,model_path:str,pos,texture:str,display: pygame.Surface):
@@ -99,9 +99,10 @@ class Object3D:
         self.texture_cords =self.model[1]
         self.tirangles = self.model[3]
         self.texture = textures.Texture(display,pygame.image.load(texture).convert_alpha())
-        self.vert = Math3d.Transform(self.model[0]).translate(pos)
+        self.vert = Core3d.Core3d(self.model[0]).translate(pos)
     
-    def sortTriangles(self, vert):
+    @staticmethod
+    def sortTriangles(vert):
         disMap = []
         for i in range(len(vert)):
             tri = vert[i]
@@ -122,14 +123,14 @@ class Object3D:
     
     def move(self, newPos):
         self.pos = [self.pos[0]+newPos[0],self.pos[1]+newPos[1],self.pos[2]+newPos[2]]
-        self.vert = Math3d.Transform(self.vert).translate(newPos)
+        self.vert = Core3d.Core3d(self.vert).translate(newPos)
 
     def rotate(self, axis, angle):
-        if axis=="x":self.vert=Math3d.Transform(Math3d.Transform(Math3d.Transform(self.vert).translateFliped(self.pos)).RotX(angle)).translate(self.pos)
-        if axis=="y":self.vert=Math3d.Transform(Math3d.Transform(Math3d.Transform(self.vert).translateFliped(self.pos)).RotY(angle)).translate(self.pos)
-        if axis=="z":self.vert=Math3d.Transform(Math3d.Transform(Math3d.Transform(self.vert).translateFliped(self.pos)).RotZ(angle)).translate(self.pos)
+        if axis=="x":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotX(angle)).translate(self.pos)
+        if axis=="y":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotY(angle)).translate(self.pos)
+        if axis=="z":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotZ(angle)).translate(self.pos)
     
-    def clipTirangles(self,cam):
+    def clipTirangles(self,scene):
         NewVert = []
         clipedPos = None
 
@@ -143,28 +144,28 @@ class Object3D:
             vt1 = self.texture_cords[self.tirangles[y][1][1]]
             vt2 = self.texture_cords[self.tirangles[y][2][1]]
 
-            clipedPos = cam.clip_triangle(
+            clipedPos = scene.clip_triangle(
                 v0,v1,v2
             )
 
             NewVert.append((clipedPos,(vt0,vt1,vt2)))
         return NewVert
 
-    def drawTriangle(self,SW,SH,FOV,cam):
-        NewVert = self.clipTirangles(cam)
+    def drawModel(self,SW,SH,FOV,secne):
+        NewVert = self.clipTirangles(secne)
         NewVert = self.sortTriangles(NewVert)
 
         if self.vert is not None:
-            transfromVert = Math3d.Transform(NewVert).transform2d3(
-                FOV, cam.NearPlane, SH, SW
+            transfromVert = Core3d.Core3d(NewVert).transform2d3(
+                FOV, secne.NearPlane, SH, SW
             )
             for x in range(len(transfromVert)):
                 face = transfromVert[x]
                 Pos = face[0]
 
                 self.texture.triangle_texture(
-                    (cam.center_object((Pos[0][0], Pos[0][1])),
-                    cam.center_object((Pos[1][0], Pos[1][1])),
-                    cam.center_object((Pos[2][0], Pos[2][1]))),
+                    (secne.center_object((Pos[0][0], Pos[0][1])),
+                    secne.center_object((Pos[1][0], Pos[1][1])),
+                    secne.center_object((Pos[2][0], Pos[2][1]))),
                     face[1]
                 )

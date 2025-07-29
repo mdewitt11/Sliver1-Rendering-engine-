@@ -1,6 +1,6 @@
 import math
 
-class Transform:
+class Core3d:
     def __init__(self, vert):
         self.vert = vert
 
@@ -106,13 +106,12 @@ class Transform:
             )
         return new_vert
 
-class Camera:
+class Secne:
     def __init__(self, ScreenWidth, ScreenHeight, fov):
         self.SH = ScreenHeight
         self.SW = ScreenWidth
         self.NearPlane = 0.1
         self.Farplane = 0
-        self.percent = 0
         self.fov_degrees = fov
 
     def center_object(self, cord):
@@ -189,10 +188,3 @@ class Camera:
     
 def distance(a, b):
     return sum((a[i] - b[i])**2 for i in range(3)) ** 0.5
-
-
-class Math3d:
-    @staticmethod
-    def Vec2(v1:float,v2:float):
-        a = math.sqrt(v1*2,v2*2) # type: ignore
-        return 

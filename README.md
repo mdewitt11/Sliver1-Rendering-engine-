@@ -8,13 +8,9 @@ The **Sliver1 Rendering Engine** is a CPU-based 3D rendering engine inspired by 
 
 - [About](#about)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Requirements](#requirements)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -36,7 +32,7 @@ It includes basic rasterization, texture mapping, triangle rendering, and affine
 - `numba`-accelerated math routines
 
 ---
-## libraries
+## Requirements
 
 - Pygame
 - numba
@@ -55,3 +51,49 @@ pip install -r requirements.txt
 ```bash
 git clone https://github.com/mdewitt11/Sliver1-Rendering-engine-.git
 cd Sliver1-Rendering-engine-
+```
+
+## Usage
+
+- Initialize Pygame and the Display
+```python
+import pygame
+
+pygame.init()
+
+display = pygame.display.set_mode(
+    (1000, 900),
+    pygame.SRCALPHA,
+    32
+)
+```
+
+- Initialize main group
+```python
+scene = object.Group(
+    [],
+    display.get_width(),
+    display.get_height()
+)
+```
+
+- add your model
+```python
+scene.append('path/to/your/model', [Pos], 'path/to/your/texture', display)
+```
+
+- add mainloop
+```python
+run = True
+while run:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+    display.fill((35, 35, 35))
+
+    group.run() # main run funtion
+    group.update_screen(display.get_height(), display.get_width()) # this is use to correct the warping when the screen is resized
+
+    pygame.display.update()
+```
+---

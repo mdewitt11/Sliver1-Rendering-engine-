@@ -1,5 +1,4 @@
 import math
-from numba import prange
 
 class Transform:
     def __init__(self, vert):

@@ -1,7 +1,5 @@
-import numpy as np
 import pygame
 import numba as nm
-from PIL import Image
 
 class Texture:
     def __init__(self, display, texture):
@@ -38,7 +36,7 @@ class Texture:
 
 
 
-@nm.njit()
+@nm.njit(parallel=True)
 def draw_triangle_affine(frame, tex, p0, p1, p2, uv0, uv1, uv2, tex_w, tex_h):
     def edge_func(a, b, c):
         return (c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])

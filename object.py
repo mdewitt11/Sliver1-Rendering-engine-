@@ -1,6 +1,5 @@
-from render import Math3d,textures
+from render import Math3d,textures,loadFile
 import pygame
-import numpy as np
 
 class Light3D:
     def __init__(self,pos=(0,0,0)):
@@ -94,13 +93,13 @@ class Group:
             obj[i][1].drawTriangle(self.SW, self.SH, self.FOV,self.camera)
 
 class Object3D:
-    def __init__(self, vert, tirangles, pos,color,texture:str,texture_cords:list,display: pygame.Surface):
-        self.color = color
+    def __init__(self,model_path:str,pos,texture:str,display: pygame.Surface):
+        self.model = loadFile.LoadObj(model_path)
         self.pos = pos
-        self.texture_cords = texture_cords
-        self.tirangles = tirangles
+        self.texture_cords =self.model[1]
+        self.tirangles = self.model[3]
         self.texture = textures.Texture(display,pygame.image.load(texture).convert_alpha())
-        self.vert = Math3d.Transform(vert).translate(pos)
+        self.vert = Math3d.Transform(self.model[0]).translate(pos)
     
     def sortTriangles(self, vert):
         disMap = []

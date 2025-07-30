@@ -36,7 +36,13 @@ It includes basic rasterization, texture mapping, triangle rendering, and affine
 
 - Pygame
 - Numba
+---
+### Clone the repository
 
+```bash
+git clone https://github.com/mdewitt11/Sliver1-Rendering-engine-.git
+cd Sliver1-Rendering-engine-
+```
 ---
 
 ## Installation
@@ -46,12 +52,6 @@ pip install -r requirements.txt
 ```
 
 ---
-### Clone the repository
-
-```bash
-git clone https://github.com/mdewitt11/Sliver1-Rendering-engine-.git
-cd Sliver1-Rendering-engine-
-```
 
 ## Usage
 

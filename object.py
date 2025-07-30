@@ -72,9 +72,13 @@ class Group:
             )
         )
     
-    def rotate(self, axis, a):
+    def rotate_object(self, axis, a):
         for i in range(len(self.objects)):
-            self.objects[i].rotate(axis,a)
+            self.objects[i].rotate_object(axis,a)
+
+    def rotate_camera(self, axis, a):
+        for i in range(len(self.objects)):
+            self.objects[i].rotate_camera(axis,a)
     
     def update_screen(self,SH,SW):
         self.secne.update_screen(SH,SW)
@@ -125,10 +129,15 @@ class Object3D:
         self.pos = [self.pos[0]+newPos[0],self.pos[1]+newPos[1],self.pos[2]+newPos[2]]
         self.vert = Core3d.Core3d(self.vert).translate(newPos)
 
-    def rotate(self, axis, angle):
+    def rotate_object(self, axis, angle):
         if axis=="x":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotX(angle)).translate(self.pos)
         if axis=="y":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotY(angle)).translate(self.pos)
         if axis=="z":self.vert=Core3d.Core3d(Core3d.Core3d(Core3d.Core3d(self.vert).translateFliped(self.pos)).RotZ(angle)).translate(self.pos)
+
+    def rotate_camera(self, axis, angle):
+        if axis=="x":self.vert=Core3d.Core3d(self.vert).RotX(angle); self.pos = Core3d.Core3d([self.pos]).RotX(angle)[0]
+        if axis=="y":self.vert=Core3d.Core3d(self.vert).RotY(angle); self.pos = Core3d.Core3d([self.pos]).RotY(angle)[0]
+        if axis=="z":self.vert=Core3d.Core3d(self.vert).RotZ(angle); self.pos = Core3d.Core3d([self.pos]).RotZ(angle)[0]
     
     def clipTirangles(self,scene):
         NewVert = []

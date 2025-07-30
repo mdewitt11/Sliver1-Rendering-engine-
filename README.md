@@ -57,6 +57,7 @@ cd Sliver1-Rendering-engine-
 
 - Initialize Pygame and the Display
 ```python
+from render import object
 import pygame
 
 pygame.init()

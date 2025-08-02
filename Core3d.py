@@ -101,7 +101,9 @@ class Core3d:
                         [focal * x2 / z2 * AR, focal * y2 / z2],
                         [focal * x3 / z3 * AR, focal * y3 / z3]
                     ],
-                    face[1]
+                    face[1],
+                    face[2],
+                    cord
                 ]
             )
         return new_vert

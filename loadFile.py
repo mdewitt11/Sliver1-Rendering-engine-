@@ -1,4 +1,3 @@
-
 def LoadObj(fileName):
     with open(fileName, "r") as file:
         vertices = []
@@ -7,32 +6,41 @@ def LoadObj(fileName):
         faces = []
 
         for line in file:
-            if line.startswith("v "):
-                _, x, y, z = line.strip().split()
-                vertices.append((float(x), float(y), float(z)))
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
 
-            elif line.startswith("vt "):
-                _, u, v = line.strip().split()
-                texcoords.append((float(u), float(v)))
+            if line.startswith("v "):  # Vertex
+                parts = line.split()
+                x, y, z = float(parts[1]), float(parts[2]), float(parts[3])
+                vertices.append((x, y, z))
 
-            elif line.startswith("vn "):
-                _, nx, ny, nz = line.strip().split()
-                normals.append((float(nx), float(ny), float(nz)))
+            elif line.startswith("vt "):  # Texture coord
+                parts = line.split()
+                u, v = float(parts[1]), float(parts[2])
+                texcoords.append((u, v))
 
-            elif line.startswith("f "):
-                parts = line.strip().split()[1:]
-                face = []
+            elif line.startswith("vn "):  # Normal
+                parts = line.split()
+                nx, ny, nz = float(parts[1]), float(parts[2]), float(parts[3])
+                normals.append((nx, ny, nz))
+
+            elif line.startswith("f "):  # Face
+                parts = line[2:].split()
+                raw_face = []
                 for part in parts:
-                    vals = part.split("/")
+                    vals = part.split('/')
                     vi = int(vals[0]) - 1
-                    vti = int(vals[1]) - 1 if len(vals) > 1 and vals[1] != '' else None
-                    vni = int(vals[2]) - 1 if len(vals) > 2 and vals[2] != '' else None
-                    face.append((vi, vti, vni))
-                if len(face) == 3:
-                    faces.append(face)
-                elif len(face) > 3:
-                    # Fan triangulate quads/ngons
-                    for i in range(1, len(face) - 1):
-                        faces.append([face[0], face[i], face[i + 1]])
+                    vti = int(vals[1]) - 1 if len(vals) > 1 and vals[1] else None
+                    vni = int(vals[2]) - 1 if len(vals) > 2 and vals[2] else None
+                    raw_face.append((vi, vti, vni))
 
-        return vertices, texcoords, normals, faces
+                # Fan triangulate faces with more than 3 vertices
+                if len(raw_face) == 3:
+                    faces.append(raw_face)
+                elif len(raw_face) > 3:
+                    for i in range(1, len(raw_face) - 1):
+                        tri = [raw_face[0], raw_face[i], raw_face[i + 1]]
+                        faces.append(tri)
+
+    return vertices, texcoords, normals, faces

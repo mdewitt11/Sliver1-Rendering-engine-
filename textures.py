@@ -6,7 +6,7 @@ def edge_func(a,b,c):
     return (c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])
 
 class Texture:
-    def __init__(self, display, texture):
+    def __init__(self, display:pygame.surface.Surface, texture):
         self.display = display  # pygame Surface
         self.texture = texture  # pygame Surface
         self.tex_array = pygame.surfarray.array3d(texture).swapaxes(0, 1) 
@@ -15,7 +15,7 @@ class Texture:
     def edge_sort(cords:tuple):
         return sorted(cords,key=lambda x: x[1])
 
-    def triangle_texture(self, cords: tuple, texture_coords: tuple):
+    def triangle_texture(self, cords: tuple, texture_coords: tuple, tint):
         a, b, c = cords
         if edge_func(a, b, c) < 0:
             return
@@ -30,12 +30,13 @@ class Texture:
             frame_array, tex_pixels,
             cords[0], cords[1], cords[2],
             texture_coords[0], texture_coords[1], texture_coords[2],
-            tex_w, tex_h
+            tex_w, tex_h,
+            tint
         )
 
     @staticmethod
     @nm.njit(parallel=True,fastmath=True)
-    def draw_triangle_affine(frame, tex, p0, p1, p2, uv0, uv1, uv2, tex_w, tex_h):
+    def draw_triangle_affine(frame, tex, p0, p1, p2, uv0, uv1, uv2, tex_w, tex_h, tint):
 
         min_x = max(int(min(p0[0], p1[0], p2[0])), 0)
         max_x = min(int(max(p0[0], p1[0], p2[0]))+1, frame.shape[0])
@@ -63,4 +64,10 @@ class Texture:
                     tx = int(u * tex_w)
                     ty = int((1 - v) * tex_h)  # flip V if necessary
 
-                    frame[x, y] = tex[ty, tx]
+                    pixel = tex[ty, tx]
+
+                    r = min(max(pixel[0]+tint[0],0),255)
+                    g = min(max(pixel[1]+tint[1],0),255)
+                    b = min(max(pixel[2]+tint[2],0),255)
+
+                    frame[x, y] = (r,g,b)

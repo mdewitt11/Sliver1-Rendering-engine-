@@ -98,3 +98,5 @@ while run:
     pygame.display.update()
 ```
 ---
+# :book: Wiki
+- see more at [Wiki](https://github.com/mdewitt11/Sliver1-Rendering-engine-/wiki)

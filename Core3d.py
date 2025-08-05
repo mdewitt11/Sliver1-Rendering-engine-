@@ -132,25 +132,23 @@ class Secne:
         NC1 = cord1[2]
         NC2 = cord2[2]
 
-        #if NC1 < self.NearPlane and NC2 < self.NearPlane:
-        #    return None
+        if NC1 < self.NearPlane and NC2 < self.NearPlane:
+            return None
 
         p1 = cord1[:]
         p2 = cord2[:]
 
         if NC1 < self.NearPlane:
-            t = (self.NearPlane - NC1) / (NC2 - NC1)
             p1 = [
-                cord1[0] + t * (cord2[0] - cord1[0]),
-                cord1[1] + t * (cord2[1] - cord1[1]),
+                cord1[0],
+                cord1[1],
                 self.NearPlane
             ]
 
         if NC2 < self.NearPlane:
-            t = (self.NearPlane - NC2) / (NC1 - NC2)
             p2 = [
-                cord2[0] + t * (cord1[0] - cord2[0]),
-                cord2[1] + t * (cord1[1] - cord2[1]),
+                cord2[0],
+                cord2[1],
                 self.NearPlane
             ]
 
@@ -159,7 +157,7 @@ class Secne:
     
     
     def clip_triangle(self, cord1, cord2, cord3):
-        def is_inside(v): return v[2] >= self.NearPlane
+        def is_inside(v): return v[2] > self.NearPlane
 
         inside = [v for v in [cord1, cord2, cord3] if is_inside(v)]
         outside = [v for v in [cord1, cord2, cord3] if not is_inside(v)]

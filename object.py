@@ -1,86 +1,9 @@
 from render import Core3d,textures,loadFile
 import pygame
 
-class Light3D:
-    def __init__(self,pos=(0,0,0)):
-        self.pos = pos
-    
-    def change_pos(self,NewPos):
-        self.pos = NewPos
-    
-    @staticmethod
-    def triangle_center(v0, v1, v2):
-        return [
-            (v0[0] + v1[0] + v2[0]) / 3,
-            (v0[1] + v1[1] + v2[1]) / 3,
-            (v0[2] + v1[2] + v2[2]) / 3,
-        ]
-    
-    @staticmethod
-    def normalize(vec):
-        length = sum(x**2 for x in vec) ** 0.5
-        if length == 0:
-            return [0, 0, 0]
-        return [x / length for x in vec]
-    
-    def get_light_dir(self,surface_pos):
-        surface_pos = self.triangle_center(surface_pos[0][0],surface_pos[0][1],surface_pos[0][2])
-        return self.normalize([
-            self.pos[0] - surface_pos[0],
-            self.pos[1] - surface_pos[1],
-            self.pos[2] - surface_pos[2]
-        ])
-    
-    def add_fog(self, light_cords, surface_cords, light_radius, base_color):
-        center = self.triangle_center(surface_cords[0], surface_cords[1], surface_cords[2])
-
-        distance_to_light = Core3d.distance(center, light_cords)
-
-        brightness = max(0, 1 - (distance_to_light / light_radius))
-        brightness = brightness ** 2
-
-        return tuple(
-            min(255, int(base_color[i] * brightness))
-            for i in range(3)
-        )
-    
-    def lighting(self,Normals,face):
-        light_dir = self.get_light_dir(face)
-
-        # Average the normals for flat lighting
-        nx = (Normals[0][0] + Normals[1][0] + Normals[2][0]) / 3
-        ny = (Normals[0][1] + Normals[1][1] + Normals[2][1]) / 3
-        nz = (Normals[0][2] + Normals[1][2] + Normals[2][2]) / 3
-
-        length = (nx**2 + ny**2 + nz**2) ** 0.5
-        if length != 0:
-                nx /= length
-                ny /= length
-                nz /= length
-
-            # Dot product for diffuse lighting
-        light = max(0.0, nx * light_dir[0] + ny * light_dir[1] + nz * light_dir[2])
-
-            # Base tint color (example: pale gold)
-        base_tint = (255, 200, 100)
-
-            # Apply lighting to tint
-        lit_tint = (
-                int(base_tint[0] * light),
-                int(base_tint[1] * light),
-                int(base_tint[2] * light)
-            )
-        return lit_tint
-    
-    def rotate_light(self,axis,angle):
-        if axis=="x": self.pos = Core3d.Core3d([self.pos]).RotX(angle)[0]
-        if axis=="y": self.pos = Core3d.Core3d([self.pos]).RotY(angle)[0]
-        if axis=="z": self.pos = Core3d.Core3d([self.pos]).RotZ(angle)[0]
-
 class Group:
     def __init__(self, objects=[],SW=900,SH=1000,FOV=0.5):
         self.objects = objects
-        self.light = Light3D()
         self.secne = Core3d.Secne(SW,SH,FOV)
         self.zero = (0,0,0)
         self.SW = SW
@@ -93,16 +16,6 @@ class Group:
     def move(self, pos):
         for i in range(len(self.objects)):
             self.objects[i].move(pos)
-            self.move_light(pos)
-             
-    def move_light(self,pos):
-        self.light.change_pos(
-            (
-                self.light.pos[0] + pos[0],
-                self.light.pos[1] + pos[1],
-                self.light.pos[2] + pos[2]
-            )
-        )
     
     def rotate_object(self, axis, a):
         for i in range(len(self.objects)):
@@ -111,7 +24,6 @@ class Group:
     def rotate_camera(self, axis, a):
         for i in range(len(self.objects)):
             self.objects[i].rotate_camera(axis,a)
-            self.light.rotate_light(axis,a)
     
     def update_screen(self,SH,SW):
         self.secne.update_screen(SH,SW)
@@ -127,7 +39,7 @@ class Group:
     def run(self):
         obj = self.sort_objects()
         for i in range(len(obj)):
-            obj[i][1].drawModel(self.SW, self.SH, self.FOV,self.secne,self.light)
+            obj[i][1].drawModel(self.SW, self.SH, self.FOV,self.secne)
 
 class Object3D:
     def __init__(self,model_path:str,pos,texture:str,display: pygame.Surface):
@@ -203,7 +115,7 @@ class Object3D:
         return NewVert
 
 
-    def drawModel(self,SW,SH,FOV,secne,light:Light3D):
+    def drawModel(self,SW,SH,FOV,secne):
         NewVert = self.clipTirangles(secne)
 
         if self.vert is not None:
@@ -216,7 +128,7 @@ class Object3D:
                 Pos = face[0]
                 Normals = face[2]
 
-                lit_tint = light.lighting(Normals,old_vert)
+                lit_tint = (0,0,0)
 
                 self.texture.triangle_texture(
                     (secne.center_object((Pos[0][0], Pos[0][1])),

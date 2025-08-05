@@ -102,8 +102,7 @@ class Core3d:
                         [focal * x3 / z3 * AR, focal * y3 / z3]
                     ],
                     face[1],
-                    face[2],
-                    cord
+                    face[2]
                 ]
             )
         return new_vert
@@ -133,8 +132,8 @@ class Secne:
         NC1 = cord1[2]
         NC2 = cord2[2]
 
-        if NC1 < self.NearPlane and NC2 < self.NearPlane:
-            return None
+        #if NC1 < self.NearPlane and NC2 < self.NearPlane:
+        #    return None
 
         p1 = cord1[:]
         p2 = cord2[:]
@@ -156,6 +155,7 @@ class Secne:
             ]
 
         return [p1, p2]
+
     
     
     def clip_triangle(self, cord1, cord2, cord3):

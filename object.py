@@ -24,7 +24,7 @@ class Light3D:
         return [x / length for x in vec]
     
     def get_light_dir(self,surface_pos):
-        surface_pos = self.triangle_center(surface_pos[0],surface_pos[1],surface_pos[2])
+        surface_pos = self.triangle_center(surface_pos[0][0],surface_pos[0][1],surface_pos[0][2])
         return self.normalize([
             self.pos[0] - surface_pos[0],
             self.pos[1] - surface_pos[1],
@@ -71,7 +71,11 @@ class Light3D:
                 int(base_tint[2] * light)
             )
         return lit_tint
-
+    
+    def rotate_light(self,axis,angle):
+        if axis=="x": self.pos = Core3d.Core3d([self.pos]).RotX(angle)[0]
+        if axis=="y": self.pos = Core3d.Core3d([self.pos]).RotY(angle)[0]
+        if axis=="z": self.pos = Core3d.Core3d([self.pos]).RotZ(angle)[0]
 
 class Group:
     def __init__(self, objects=[],SW=900,SH=1000,FOV=0.5):
@@ -107,6 +111,7 @@ class Group:
     def rotate_camera(self, axis, a):
         for i in range(len(self.objects)):
             self.objects[i].rotate_camera(axis,a)
+            self.light.rotate_light(axis,a)
     
     def update_screen(self,SH,SW):
         self.secne.update_screen(SH,SW)
@@ -119,7 +124,7 @@ class Group:
         obj.sort(key=lambda x: x[0],reverse=True)
         return obj
     
-    def run(self,display):
+    def run(self):
         obj = self.sort_objects()
         for i in range(len(obj)):
             obj[i][1].drawModel(self.SW, self.SH, self.FOV,self.secne,self.light)
@@ -133,26 +138,8 @@ class Object3D:
         self.normals = self.model[2]
         self.texture = textures.Texture(display,pygame.image.load(texture).convert_alpha())
         self.vert = Core3d.Core3d(self.model[0]).translate(pos)
-    
-    @staticmethod
-    def sortTriangles(vert):
-        disMap = []
-        for i in range(len(vert)):
-            tri = vert[i]
 
-            try:
-                z1 = tri[0][0][2]
-                z2 = tri[0][1][2]
-                z3 = tri[0][2][2]
-                avg_z = (z1 + z2 + z3) / 3
-            except:
-                continue
-
-            disMap.append([avg_z, tri[0],tri[1],tri[2]])
-
-        disMap.sort(key=lambda x: x[0], reverse=True)
-        return [(a, b, c) for _, a, b, c in disMap]
-
+        self.dispaly = display
     
     def move(self, newPos):
         self.pos = [self.pos[0]+newPos[0],self.pos[1]+newPos[1],self.pos[2]+newPos[2]]
@@ -193,9 +180,9 @@ class Object3D:
             v1 = self.vert[self.tirangles[y][1][0]]
             v2 = self.vert[self.tirangles[y][2][0]]
 
-            vt0 = self.texture_cords[self.tirangles[y][0][1]] #if self.tirangles[y][0][1] is not None else (0, 0)
-            vt1 = self.texture_cords[self.tirangles[y][1][1]] #if self.tirangles[y][1][1] is not None else (0, 0)
-            vt2 = self.texture_cords[self.tirangles[y][2][1]] #if self.tirangles[y][2][1] is not None else (0, 0)
+            vt0 = self.texture_cords[self.tirangles[y][0][1]]
+            vt1 = self.texture_cords[self.tirangles[y][1][1]]
+            vt2 = self.texture_cords[self.tirangles[y][2][1]]
 
             # Check if any normal index is None
             normal_indices = [self.tirangles[y][0][2], self.tirangles[y][1][2], self.tirangles[y][2][2]]
@@ -210,14 +197,14 @@ class Object3D:
 
             clipedPos = scene.clip_triangle(v0, v1, v2)
 
-            NewVert.append((clipedPos, (vt0, vt1, vt2), (vn0, vn1, vn2)))
+            if clipedPos != None:
+                NewVert.append((clipedPos, (vt0, vt1, vt2), (vn0, vn1, vn2)))
 
         return NewVert
 
 
     def drawModel(self,SW,SH,FOV,secne,light:Light3D):
         NewVert = self.clipTirangles(secne)
-        NewVert = self.sortTriangles(NewVert)
 
         if self.vert is not None:
             transfromVert = Core3d.Core3d(NewVert).transform2d3(
@@ -225,15 +212,19 @@ class Object3D:
             )
             for x in range(len(transfromVert)):
                 face = transfromVert[x]
+                old_vert = NewVert[x]
                 Pos = face[0]
                 Normals = face[2]
 
-                lit_tint = (0,0,0)#light.lighting(Normals,face[3])
+                lit_tint = light.lighting(Normals,old_vert)
 
                 self.texture.triangle_texture(
                     (secne.center_object((Pos[0][0], Pos[0][1])),
                     secne.center_object((Pos[1][0], Pos[1][1])),
                     secne.center_object((Pos[2][0], Pos[2][1]))),
                     texture_coords=face[1],
-                    tint=lit_tint
+                    tint=lit_tint,
+                    z=(old_vert[0][0][2],old_vert[0][1][2],old_vert[0][2][2])
                 )
+            
+        self.texture.clear_z()

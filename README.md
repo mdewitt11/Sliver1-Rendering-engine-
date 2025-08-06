@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 - Initialize Pygame and the Display
 ```python
-from render import object
+from path.to.the.render import object
 import pygame
 
 pygame.init()

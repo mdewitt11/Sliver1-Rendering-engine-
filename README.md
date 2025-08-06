@@ -13,6 +13,9 @@ The **Sliver1 Rendering Engine** is a CPU-based 3D rendering engine inspired by 
 - [Requirements](#requirements)
 
 ---
+## ✋ Folow me at:
+- [Dev Community](https://dev.to/cerebrum)
+---
 
 ## About
 

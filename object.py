@@ -42,9 +42,10 @@ class Group:
             obj[i][1].drawModel(self.SW, self.SH, self.FOV,self.secne)
 
 class Object3D:
-    def __init__(self,model_path:str,pos,texture:str,display: pygame.Surface):
+    def __init__(self,model_path:str,pos,texture:str,display: pygame.Surface,tint=(0,0,0)):
         self.model = loadFile.LoadObj(model_path)
         self.pos = pos
+        self.tint = tint
         self.texture_cords =self.model[1]
         self.tirangles = self.model[3]
         self.normals = self.model[2]
@@ -128,14 +129,12 @@ class Object3D:
                 Pos = face[0]
                 Normals = face[2]
 
-                lit_tint = (0,0,0)
-
                 self.texture.triangle_texture(
                     (secne.center_object((Pos[0][0], Pos[0][1])),
                     secne.center_object((Pos[1][0], Pos[1][1])),
                     secne.center_object((Pos[2][0], Pos[2][1]))),
                     texture_coords=face[1],
-                    tint=lit_tint,
+                    tint=self.tint,
                     z=(old_vert[0][0][2],old_vert[0][1][2],old_vert[0][2][2])
                 )
             

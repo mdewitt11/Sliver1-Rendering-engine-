@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 - Initialize Pygame and the Display
 ```python
-from ./src import object
+from pathToRender.src.object import object
 import pygame
 
 pygame.init()
@@ -74,7 +74,7 @@ display = pygame.display.set_mode(
 
 - Initialize main group
 ```python
-scene = object.Group(
+group = object.Group(
     [],
     display.get_width(),
     display.get_height()

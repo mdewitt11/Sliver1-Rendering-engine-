@@ -1,4 +1,3 @@
-
 def LoadObj(fileName):
     with open(fileName, "r") as file:
         vertices = []
@@ -8,7 +7,7 @@ def LoadObj(fileName):
 
         for line in file:
             line = line.strip()
-            #if not line or line.startswith('#'):
+            # if not line or line.startswith('#'):
             #    continue
 
             if line.startswith("v "):  # Vertex
@@ -30,7 +29,7 @@ def LoadObj(fileName):
                 parts = line[2:].split()
                 raw_face = []
                 for part in parts:
-                    vals = part.split('/')
+                    vals = part.split("/")
                     vi = int(vals[0]) - 1
                     vti = int(vals[1]) - 1 if len(vals) > 1 and vals[1] else None
                     vni = int(vals[2]) - 1 if len(vals) > 2 and vals[2] else None
@@ -39,9 +38,9 @@ def LoadObj(fileName):
                 # Fan triangulate faces with more than 3 vertices
                 if len(raw_face) == 3:
                     faces.append(raw_face)
-                elif len(raw_face) > 3:   
-                    for i in range(1, len(raw_face)-1):
-                        tri = [raw_face[0], raw_face[i], raw_face[i+1]]
+                elif len(raw_face) > 3:
+                    for i in range(1, len(raw_face) - 1):
+                        tri = [raw_face[0], raw_face[i], raw_face[i + 1]]
                         faces.append(tri)
 
     return vertices, texcoords, normals, faces

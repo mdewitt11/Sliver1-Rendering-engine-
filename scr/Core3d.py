@@ -1,71 +1,89 @@
 import math
 
+
 class Core3d:
     def __init__(self, vert):
         self.vert = vert
 
-    def translate(self, Tcord):
+    def translate(self, translation_matrix: list[float]):
         vert = []
         for x in range(len(self.vert)):
             cord = self.vert[x]
-            if cord == None:
+            if cord is None:
                 continue
             if len(cord) != 3:
                 continue
 
-            vert.append([cord[0] + Tcord[0], cord[1] + Tcord[1], cord[2] + Tcord[2]])
+            vert.append(
+                [
+                    cord[0] + translation_matrix[0],
+                    cord[1] + translation_matrix[1],
+                    cord[2] + translation_matrix[2],
+                ]
+            )
         return vert
-    
-    def translateFliped(self, Tcord):
+
+    def translateFliped(self, translation_matrix: list[float]):
         vert = []
         for x in range(len(self.vert)):
             cord = self.vert[x]
-            if cord == None:
+            if cord is None:
                 continue
             if len(cord) != 3:
                 continue
 
-            vert.append([cord[0] + -Tcord[0], cord[1] + -Tcord[1], cord[2] + -Tcord[2]])
+            vert.append(
+                [
+                    cord[0] + -translation_matrix[0],
+                    cord[1] + -translation_matrix[1],
+                    cord[2] + -translation_matrix[2],
+                ]
+            )
         return vert
 
-
-    def scale(self, Tcord):
+    def scale(self, translation_matrix: list[float]):
         vert = []
         for x in range(len(self.vert)):
             cord = self.vert[x]
-            vert.append([cord[0] * Tcord[0], cord[1] * Tcord[1], cord[2] * Tcord[2]])
+            vert.append(
+                [
+                    cord[0] * translation_matrix[0],
+                    cord[1] * translation_matrix[1],
+                    cord[2] * translation_matrix[2],
+                ]
+            )
         return vert
 
-    def RotX(self, a):
+    def RotX(self, angle):
         vert = []
         for cord in self.vert:
             x = cord[0]
-            y = cord[1] * math.cos(a) - cord[2] * math.sin(a)
-            z = cord[1] * math.sin(a) + cord[2] * math.cos(a)
+            y = cord[1] * math.cos(angle) - cord[2] * math.sin(angle)
+            z = cord[1] * math.sin(angle) + cord[2] * math.cos(angle)
             vert.append([x, y, z])
         return vert
 
-    def RotY(self, a):
+    def RotY(self, angle: float):
         vert = []
         for i in range(len(self.vert)):
             cord = self.vert[i]
-            x = cord[2] * math.sin(a) + cord[0] * math.cos(a)
+            x = cord[2] * math.sin(angle) + cord[0] * math.cos(angle)
             y = cord[1]
-            z = cord[2] * math.cos(a) - cord[0] * math.sin(a)
+            z = cord[2] * math.cos(angle) - cord[0] * math.sin(angle)
             vert.append([x, y, z])
         return vert
 
-    def RotZ(self, a):
+    def RotZ(self, angle: float):
         vert = []
         for i in range(len(self.vert)):
             cord = self.vert[i]
-            x = cord[0] * math.cos(a) - cord[1] * math.sin(a)
-            y = cord[0] * math.sin(a) + cord[1] * math.cos(a)
+            x = cord[0] * math.cos(angle) - cord[1] * math.sin(angle)
+            y = cord[0] * math.sin(angle) + cord[1] * math.cos(angle)
             z = cord[2]
             vert.append([x, y, z])
         return vert
-    
-    def transform2d3(self, focal, Nearplane, SH1, SW1):
+
+    def transform2d3(self, focal_legth: float, Nearplane: float, SH1: int, SW1: int):
         AR = SW1 / SH1
         new_vert = []
         for i in range(len(self.vert)):
@@ -97,29 +115,28 @@ class Core3d:
             new_vert.append(
                 [
                     [
-                        [focal * x1 / z1 * AR, focal * y1 / z1],
-                        [focal * x2 / z2 * AR, focal * y2 / z2],
-                        [focal * x3 / z3 * AR, focal * y3 / z3]
+                        [focal_legth * x1 / z1 * AR, focal_legth * y1 / z1],
+                        [focal_legth * x2 / z2 * AR, focal_legth * y2 / z2],
+                        [focal_legth * x3 / z3 * AR, focal_legth * y3 / z3],
                     ],
                     face[1],
-                    face[2]
+                    face[2],
                 ]
             )
         return new_vert
 
+
 class Secne:
-    def __init__(self, ScreenWidth, ScreenHeight, fov):
+    def __init__(self, ScreenWidth, ScreenHeight):
         self.SH = ScreenHeight
         self.SW = ScreenWidth
         self.NearPlane = 0.1
-        self.Farplane = 0
-        self.fov_degrees = fov
 
     def center_object(self, cord):
         return (self.SW / 2 + cord[0], self.SH / 2 + cord[1])
-    
-    def update_screen(self,SH,SW):
-        self.SH,self.SW = SH,SW
+
+    def update_screen(self, SH, SW):
+        self.SH, self.SW = SH, SW
 
     def Flip(self, cord):
         vert = []
@@ -139,25 +156,16 @@ class Secne:
         p2 = cord2[:]
 
         if NC1 < self.NearPlane:
-            p1 = [
-                cord1[0],
-                cord1[1],
-                self.NearPlane
-            ]
+            p1 = [cord1[0], cord1[1], self.NearPlane]
 
         if NC2 < self.NearPlane:
-            p2 = [
-                cord2[0],
-                cord2[1],
-                self.NearPlane
-            ]
+            p2 = [cord2[0], cord2[1], self.NearPlane]
 
         return [p1, p2]
 
-    
-    
     def clip_triangle(self, cord1, cord2, cord3):
-        def is_inside(v): return v[2] > self.NearPlane
+        def is_inside(v):
+            return v[2] > self.NearPlane
 
         inside = [v for v in [cord1, cord2, cord3] if is_inside(v)]
         outside = [v for v in [cord1, cord2, cord3] if not is_inside(v)]
@@ -167,7 +175,7 @@ class Secne:
 
         if len(inside) == 3:
             return [cord1, cord2, cord3]
-        
+
         if len(inside) == 1:
             a = inside[0]
             b, c = outside
@@ -182,9 +190,11 @@ class Secne:
             clipped1 = self.Zclip(a, c)
             clipped2 = self.Zclip(b, c)
             if clipped1 is not None and clipped2 is not None:
-                return [a, b, clipped1[1]] 
+                return [a, b, clipped1[1]]
 
         return None
-    
+
+
 def distance(a, b):
-    return sum((a[i] - b[i])**2 for i in range(3)) ** 0.5
+    return sum((a[i] - b[i]) ** 2 for i in range(3)) ** 0.5
+
